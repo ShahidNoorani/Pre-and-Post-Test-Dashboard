@@ -125,8 +125,18 @@
   .paste-panel p{font-size:12px;color:#64748b;margin-bottom:12px;padding-left:10px}
   textarea.paste-area{width:100%;height:110px;font-size:11px;font-family:'JetBrains Mono',monospace;border:1px solid #d1d5db;border-radius:10px;padding:10px;resize:vertical;background:#f8fafc;color:#475569;outline:none;transition:border-color .2s}
   textarea.paste-area:focus{border-color:#1d6a8a}
+  .sync-row{display:flex;gap:12px;margin-bottom:14px;padding-left:10px;align-items:flex-end;flex-wrap:wrap}
+  .sync-input-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px}
+  .sync-input-group label{font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .sync-input{font-size:12px;padding:8px 12px;border:1px solid #d1d5db;border-radius:8px;outline:none;font-family:inherit;color:#1e293b;background:#f8fafc;transition:border-color .2s}
+  .sync-input:focus{border-color:#1d6a8a;background:#fff}
+  .divider{display:flex;align-items:center;text-align:center;color:#94a3b8;font-size:11px;font-weight:600;text-transform:uppercase;margin:16px 0;letter-spacing:1px}
+  .divider::before, .divider::after{content:'';flex:1;border-bottom:1px solid #e2e8f0}
+  .divider:not(:empty)::before{margin-right:10px}
+  .divider:not(:empty)::after{margin-left:10px}
   .empty-state{text-align:center;padding:60px 20px;color:#94a3b8;font-size:14px}
   .empty-state-icon{font-size:40px;margin-bottom:12px;opacity:.6}
+  .admin-only{display:none !important}
 
   /* ── Comparison Specific ── */
   .compare-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
@@ -193,19 +203,34 @@
     </div>
     <div style="display:flex;gap:8px;align-items:flex-end">
       <button class="btn btn-secondary" onclick="clearFilters('pre')">Clear</button>
-      <button class="btn btn-primary" onclick="togglePaste('pre')">⊕ Paste Data</button>
+      <button class="btn btn-primary admin-only" onclick="togglePaste('pre')">⚙️ Sync / Paste Data</button>
     </div>
     <div style="margin-left:auto;font-size:12px;color:#64748b;align-self:center" id="pre-record-count"></div>
   </div>
 
   <!-- Paste Panel -->
   <div class="paste-panel pre-paste" id="pre-paste-panel">
-    <h3>📋 Paste Pre-test Data</h3>
-    <p>Copy all rows from your Google Sheet (Ctrl+A → Ctrl+C) and paste below. First row must be the header row.</p>
+    <h3>🔄 Sync Pre-test Data</h3>
+    <p>Connect directly to your Google Sheet or manually paste data below.</p>
+    
+    <div class="sync-row">
+      <div class="sync-input-group" style="flex:2">
+        <label>Google Sheet ID</label>
+        <input type="text" class="sync-input" id="pre-sheet-id" placeholder="e.g. 1nIaGd0GkIgtzbzR6FMNCoUhUzZoiurF1jqJgg5e-Ndw">
+      </div>
+      <div class="sync-input-group">
+        <label>Sheet / Tab Name</label>
+        <input type="text" class="sync-input" id="pre-sheet-tab" placeholder="e.g. Sheet1">
+      </div>
+      <button class="btn btn-primary" onclick="syncFromSheet('pre')" id="pre-sync-btn">Sync Data</button>
+    </div>
+
+    <div class="divider">OR PASTE MANUALLY</div>
+
     <textarea class="paste-area" id="pre-paste-input" placeholder="Timestamp&#9;Score&#9;नाम&#9;पदनाम&#9;जिला&#9;Project Name&#10;27/05/2026 10:36:46&#9;22 / 50&#9;..."></textarea>
     <div style="display:flex;gap:10px;margin-top:10px;padding-left:10px">
-      <button class="btn btn-primary" onclick="loadPastedData('pre')">Load data</button>
-      <button class="btn btn-secondary" onclick="togglePaste('pre')">Cancel</button>
+      <button class="btn btn-primary" onclick="loadPastedData('pre')">Load manual data</button>
+      <button class="btn btn-secondary" onclick="togglePaste('pre')">Close panel</button>
       <span id="pre-paste-msg" style="font-size:12px;color:#64748b;align-self:center"></span>
     </div>
   </div>
@@ -242,19 +267,34 @@
     </div>
     <div style="display:flex;gap:8px;align-items:flex-end">
       <button class="btn btn-secondary" onclick="clearFilters('post')">Clear</button>
-      <button class="btn btn-post" onclick="togglePaste('post')">⊕ Paste Data</button>
+      <button class="btn btn-post admin-only" onclick="togglePaste('post')">⚙️ Sync / Paste Data</button>
     </div>
     <div style="margin-left:auto;font-size:12px;color:#64748b;align-self:center" id="post-record-count"></div>
   </div>
 
   <!-- Paste Panel -->
   <div class="paste-panel post-paste" id="post-paste-panel">
-    <h3>📋 Paste Post-test Data</h3>
-    <p>Copy all rows from your Google Sheet (Ctrl+A → Ctrl+C) and paste below. Same format as pre-test.</p>
+    <h3>🔄 Sync Post-test Data</h3>
+    <p>Connect directly to your Google Sheet or manually paste data below.</p>
+    
+    <div class="sync-row">
+      <div class="sync-input-group" style="flex:2">
+        <label>Google Sheet ID</label>
+        <input type="text" class="sync-input" id="post-sheet-id" placeholder="e.g. 1nIaGd0GkIgtzbzR6FMNCoUhUzZoiurF1jqJgg5e-Ndw">
+      </div>
+      <div class="sync-input-group">
+        <label>Sheet / Tab Name</label>
+        <input type="text" class="sync-input" id="post-sheet-tab" placeholder="e.g. Sheet2">
+      </div>
+      <button class="btn btn-post" onclick="syncFromSheet('post')" id="post-sync-btn">Sync Data</button>
+    </div>
+
+    <div class="divider">OR PASTE MANUALLY</div>
+
     <textarea class="paste-area" id="post-paste-input" placeholder="Timestamp&#9;Score&#9;नाम&#9;पदनाम&#9;जिला&#9;Project Name&#10;28/05/2026 14:22:10&#9;38 / 50&#9;..."></textarea>
     <div style="display:flex;gap:10px;margin-top:10px;padding-left:10px">
-      <button class="btn btn-post" onclick="loadPastedData('post')">Load data</button>
-      <button class="btn btn-secondary" onclick="togglePaste('post')">Cancel</button>
+      <button class="btn btn-post" onclick="loadPastedData('post')">Load manual data</button>
+      <button class="btn btn-secondary" onclick="togglePaste('post')">Close panel</button>
       <span id="post-paste-msg" style="font-size:12px;color:#64748b;align-self:center"></span>
     </div>
   </div>
@@ -302,16 +342,15 @@ let postData = [];
 let charts = { pre: null, post: null, compareDist: null, compareBar: null };
 
 /* ═══════════════════════════════════════════════════════════════
-   PARSER
+   PARSER & SYNC
    ═══════════════════════════════════════════════════════════════ */
-function parseRows(tsv) {
-  const lines = tsv.trim().split('\n');
-  if (lines.length < 2) return [];
+function processDataMatrix(matrix) {
+  if (matrix.length < 2) return [];
   const out = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split('\t');
+  for (let i = 1; i < matrix.length; i++) {
+    const cols = matrix[i];
     if (cols.length < 6) continue;
-    const [ts, scoreRaw, name, desig, dist, proj] = cols.map(c => c.trim());
+    const [ts, scoreRaw, name, desig, dist, proj] = cols.map(c => c ? c.trim() : '');
     if (!name || !scoreRaw) continue;
     const m = scoreRaw.match(/(\d+)\s*\/\s*(\d+)/);
     if (!m) continue;
@@ -322,11 +361,90 @@ function parseRows(tsv) {
     let date = null;
     const dm = ts.match(/(\d{2})\/(\d{2})\/(\d{4})/);
     if (dm) date = new Date(`${dm[3]}-${dm[2]}-${dm[1]}`);
-    const projKey = proj.trim().toLowerCase().replace(/\s+/g, '');
-    const nameKey = name.trim().toLowerCase().replace(/\s+/g, '');
-    out.push({ ts, score, total, pct, name, desig, dist: dist.trim().toUpperCase(), proj: proj.trim(), projKey, nameKey, date });
+    const projKey = proj.toLowerCase().replace(/\s+/g, '');
+    const nameKey = name.toLowerCase().replace(/\s+/g, '');
+    out.push({ ts, score, total, pct, name, desig, dist: dist.toUpperCase(), proj, projKey, nameKey, date });
   }
   return out;
+}
+
+function parseRows(tsv) {
+  const lines = tsv.trim().split('\n');
+  const matrix = lines.map(line => line.split('\t'));
+  return processDataMatrix(matrix);
+}
+
+function parseCSV(str) {
+  const rows = []; let cols = []; let col = ''; let inQuotes = false;
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i], nextC = str[i+1];
+    if (inQuotes) {
+      if (c === '"' && nextC === '"') { col += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { col += c; }
+    } else {
+      if (c === '"') { inQuotes = true; }
+      else if (c === ',') { cols.push(col); col = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && nextC === '\n') i++;
+        cols.push(col); rows.push(cols); cols = []; col = '';
+      }
+      else { col += c; }
+    }
+  }
+  if (col !== '' || cols.length > 0) { cols.push(col); rows.push(cols); }
+  return rows;
+}
+
+async function syncFromSheet(type) {
+  const idInput = document.getElementById(type + '-sheet-id');
+  const tabInput = document.getElementById(type + '-sheet-tab');
+  const btn = document.getElementById(type + '-sync-btn');
+  const id = idInput.value.trim();
+  const tab = tabInput.value.trim();
+  
+  if (!id) { alert('Please enter a Google Sheet ID'); return; }
+  
+  localStorage.setItem(type + 'SheetId', id);
+  localStorage.setItem(type + 'SheetTab', tab);
+  
+  const url = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
+  
+  const origText = btn.innerText;
+  btn.innerText = 'Syncing...';
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch. Check if the sheet is "Anyone with the link can view".');
+    const csv = await res.text();
+    
+    // Check if the response looks like HTML (Google login page) instead of CSV
+    if (csv.trim().startsWith('<!DOCTYPE html>')) {
+      throw new Error('Google Sheet is private. Please change share settings to "Anyone with the link can view".');
+    }
+
+    const matrix = parseCSV(csv);
+    const data = processDataMatrix(matrix);
+    
+    if (data.length === 0) throw new Error('No valid data found in the sheet. Make sure the headers and columns match.');
+    
+    if (type === 'pre') { preData = data; localStorage.setItem('preSyncCSV', csv); }
+    else { postData = data; localStorage.setItem('postSyncCSV', csv); }
+    
+    populateFilters(type);
+    renderDashboard(type);
+    if (document.getElementById('tab-compare').classList.contains('active')) renderComparison();
+    
+    btn.innerText = 'Synced ✓';
+    setTimeout(() => { btn.innerText = origText; }, 2000);
+  } catch(e) {
+    alert(e.message);
+    btn.innerText = 'Error';
+    setTimeout(() => { btn.innerText = origText; }, 2000);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -931,10 +1049,38 @@ function renderComparison() {
    ═══════════════════════════════════════════════════════════════ */
 // Try restoring from localStorage, else use default
 try {
-  const savedPre = localStorage.getItem('preTestData');
-  const savedPost = localStorage.getItem('postTestData');
-  preData = parseRows(savedPre || DEFAULT_PRE_TSV);
-  if (savedPost) postData = parseRows(savedPost);
+  // Reveal admin controls if ?admin=1 is in URL
+  if (new URLSearchParams(window.location.search).get('admin') === '1') {
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('admin-only'));
+  }
+
+  // Restore sync settings or use hardcoded live defaults
+  const preId = localStorage.getItem('preSheetId') || '1nIaGd0GkIgtzbzR6FMNCoUhUzZoiurF1jqJgg5e-Ndw';
+  const preTab = localStorage.getItem('preSheetTab') || 'Sheet1';
+  const postId = localStorage.getItem('postSheetId') || '1K9ent4CeXrKpA4-EqiPQ-OiEJVwx0mtPgZYfaajjChc';
+  const postTab = localStorage.getItem('postSheetTab') || 'Sheet1';
+  
+  if (preId) document.getElementById('pre-sheet-id').value = preId;
+  document.getElementById('pre-sheet-tab').value = preTab;
+  if (postId) document.getElementById('post-sheet-id').value = postId;
+  document.getElementById('post-sheet-tab').value = postTab;
+
+  const savedPreSync = localStorage.getItem('preSyncCSV');
+  const savedPostSync = localStorage.getItem('postSyncCSV');
+  const savedPrePaste = localStorage.getItem('preTestData');
+  const savedPostPaste = localStorage.getItem('postTestData');
+  
+  if (savedPreSync) preData = processDataMatrix(parseCSV(savedPreSync));
+  else if (savedPrePaste) preData = parseRows(savedPrePaste);
+  else preData = parseRows(DEFAULT_PRE_TSV);
+  
+  if (savedPostSync) postData = processDataMatrix(parseCSV(savedPostSync));
+  else if (savedPostPaste) postData = parseRows(savedPostPaste);
+  
+  // Auto-sync live data on every load
+  if (preId) syncFromSheet('pre');
+  if (postId) syncFromSheet('post');
+  
 } catch(e) {
   preData = parseRows(DEFAULT_PRE_TSV);
 }
