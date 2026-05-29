@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pre & Post Test Dashboard · ICDS Rajasthan</title>
-<meta name="description" content="Interactive Pre-test and Post-test analysis dashboard for ICDS/AWW Training Programme, Rajasthan. Paste Backend data for instant analytics.">
+<meta name="description" content="Interactive Pre-test and Post-test analysis dashboard for ICDS/AWW Training Programme, Rajasthan. Paste Google Sheet data for instant analytics.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -176,19 +176,19 @@
 <div id="global-loader" class="global-loader">
   <div class="spinner"></div>
   <div class="loader-text">Syncing Live Data...</div>
-  <div class="loader-sub">Pulling the latest responses from Backend</div>
+  <div class="loader-sub">Pulling the latest responses from Google Sheets</div>
 </div>
 
 <!-- ═══════════ HEADER ═══════════ -->
 <div class="header">
   <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px">
     <h1>📊 Pre & Post Test Dashboard <span class="header-badge">LIVE</span></h1>
-    <div class="refresh-info" title="Data automatically syncs from Backend every time this page is loaded or refreshed.">
+    <div class="refresh-info" title="Data automatically syncs from Google Sheets every time this page is loaded or refreshed.">
       <span id="last-refresh-time">Last refreshed: --:--</span>
       <span style="cursor:help;opacity:0.7">ⓘ</span>
     </div>
   </div>
-  <p style="margin-top:8px">ICDS / AWW Training Programme · Rajasthan · Real-time data from Backend</p>
+  <p style="margin-top:8px">ICDS / AWW Training Programme · Rajasthan · Real-time data from Google Sheets</p>
 </div>
 
 <!-- ═══════════ TAB BAR ═══════════ -->
@@ -232,11 +232,11 @@
   <!-- Paste Panel -->
   <div class="paste-panel pre-paste" id="pre-paste-panel">
     <h3>🔄 Sync Pre-test Data</h3>
-    <p>Connect directly to your Backend or manually paste data below.</p>
+    <p>Connect directly to your Google Sheet or manually paste data below.</p>
     
     <div class="sync-row">
       <div class="sync-input-group" style="flex:2">
-        <label>Backend ID</label>
+        <label>Google Sheet ID</label>
         <input type="text" class="sync-input" id="pre-sheet-id" placeholder="e.g. 1nIaGd0GkIgtzbzR6FMNCoUhUzZoiurF1jqJgg5e-Ndw">
       </div>
       <div class="sync-input-group">
@@ -296,11 +296,11 @@
   <!-- Paste Panel -->
   <div class="paste-panel post-paste" id="post-paste-panel">
     <h3>🔄 Sync Post-test Data</h3>
-    <p>Connect directly to your Backend or manually paste data below.</p>
+    <p>Connect directly to your Google Sheet or manually paste data below.</p>
     
     <div class="sync-row">
       <div class="sync-input-group" style="flex:2">
-        <label>Backend ID</label>
+        <label>Google Sheet ID</label>
         <input type="text" class="sync-input" id="post-sheet-id" placeholder="e.g. 1nIaGd0GkIgtzbzR6FMNCoUhUzZoiurF1jqJgg5e-Ndw">
       </div>
       <div class="sync-input-group">
@@ -424,7 +424,7 @@ async function syncFromSheet(type) {
   const id = idInput.value.trim();
   const tab = tabInput.value.trim();
   
-  if (!id) { alert('Please enter a Backend ID'); return; }
+  if (!id) { alert('Please enter a Google Sheet ID'); return; }
   
   localStorage.setItem(type + 'SheetId', id);
   localStorage.setItem(type + 'SheetTab', tab);
@@ -442,7 +442,7 @@ async function syncFromSheet(type) {
     
     // Check if the response looks like HTML (Google login page) instead of CSV
     if (csv.trim().startsWith('<!DOCTYPE html>')) {
-      throw new Error('Backend is private. Please change share settings to "Anyone with the link can view".');
+      throw new Error('Google Sheet is private. Please change share settings to "Anyone with the link can view".');
     }
 
     const matrix = parseCSV(csv);
@@ -586,7 +586,7 @@ function renderDashboard(type) {
   const dotClass = type === 'pre' ? 'dot-blue' : 'dot-purple';
 
   if (!data.length) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div>No data yet. Click "<b>⊕ Paste Data</b>" above to load ${type}-test data from your Backend.</div>`;
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div>No data yet. Click "<b>⊕ Paste Data</b>" above to load ${type}-test data from your Google Sheet.</div>`;
     if (charts[type]) { charts[type].destroy(); charts[type] = null; }
     return;
   }
@@ -837,12 +837,21 @@ function renderComparison() {
     return;
   }
 
+  // Apply active filters
+  const fPre = getFiltered('pre');
+  const fPost = getFiltered('post');
+
+  if (!fPre.length && !fPost.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📊</div>No data matches the selected filters.</div>`;
+    return;
+  }
+
   // Match participants by nameKey
   const preMap = {};
-  preData.forEach(r => { preMap[r.nameKey] = r; });
+  fPre.forEach(r => { preMap[r.nameKey] = r; });
   const matched = [];
   const postOnly = [];
-  postData.forEach(r => {
+  fPost.forEach(r => {
     if (preMap[r.nameKey]) {
       matched.push({ name: r.name, dist: r.dist, proj: r.proj, desig: r.desig,
         prePct: preMap[r.nameKey].pct, postPct: r.pct,
@@ -856,14 +865,14 @@ function renderComparison() {
   const preOnly = Object.values(preMap);
 
   // Aggregate stats
-  const preScores = preData.map(r => r.pct);
-  const postScores = postData.map(r => r.pct);
-  const preAvg = preScores.reduce((a,b)=>a+b,0)/preScores.length;
-  const postAvg = postScores.reduce((a,b)=>a+b,0)/postScores.length;
-  const prePass = preData.filter(r => r.pct >= 50).length;
-  const postPass = postData.filter(r => r.pct >= 50).length;
-  const prePassPct = Math.round(prePass/preData.length*100);
-  const postPassPct = Math.round(postPass/postData.length*100);
+  const preScores = fPre.map(r => r.pct);
+  const postScores = fPost.map(r => r.pct);
+  const preAvg = preScores.length ? preScores.reduce((a,b)=>a+b,0)/preScores.length : 0;
+  const postAvg = postScores.length ? postScores.reduce((a,b)=>a+b,0)/postScores.length : 0;
+  const prePass = fPre.filter(r => r.pct >= 50).length;
+  const postPass = fPost.filter(r => r.pct >= 50).length;
+  const prePassPct = fPre.length ? Math.round(prePass/fPre.length*100) : 0;
+  const postPassPct = fPost.length ? Math.round(postPass/fPost.length*100) : 0;
   const avgDelta = postAvg - preAvg;
   const passRateDelta = postPassPct - prePassPct;
 
@@ -874,8 +883,8 @@ function renderComparison() {
   // Score distribution buckets
   const preBuckets = [{l:'0–20',min:0,max:20,c:0},{l:'21–40',min:21,max:40,c:0},{l:'41–60',min:41,max:60,c:0},{l:'61–80',min:61,max:80,c:0},{l:'81–100',min:81,max:100,c:0}];
   const postBuckets = [{l:'0–20',min:0,max:20,c:0},{l:'21–40',min:21,max:40,c:0},{l:'41–60',min:41,max:60,c:0},{l:'61–80',min:61,max:80,c:0},{l:'81–100',min:81,max:100,c:0}];
-  preData.forEach(r => { const b = preBuckets.find(b => r.pct >= b.min && r.pct <= b.max); if(b) b.c++; });
-  postData.forEach(r => { const b = postBuckets.find(b => r.pct >= b.min && r.pct <= b.max); if(b) b.c++; });
+  fPre.forEach(r => { const b = preBuckets.find(b => r.pct >= b.min && r.pct <= b.max); if(b) b.c++; });
+  fPost.forEach(r => { const b = postBuckets.find(b => r.pct >= b.min && r.pct <= b.max); if(b) b.c++; });
 
   const deltaSign = (v) => v > 0 ? '+' : '';
   const deltaClass = (v) => v > 0 ? 'delta-positive' : v < 0 ? 'delta-negative' : 'delta-neutral';
@@ -897,7 +906,7 @@ function renderComparison() {
     <div class="kpi navy">
       <div class="kpi-label">Matched Participants</div>
       <div class="kpi-val">${matched.length}</div>
-      <div class="kpi-sub">of ${preData.length} pre + ${postData.length} post</div>
+      <div class="kpi-sub">of ${fPre.length} pre + ${fPost.length} post</div>
     </div>
     <div class="kpi purple">
       <div class="kpi-label">Improved</div>
